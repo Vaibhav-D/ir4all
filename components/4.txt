@@ -1,0 +1,106 @@
+Build the "Logo Cloud 2" component from Efferd UI. Match the described visual exactly: a bordered logo grid of top tech brands, with decorative plus icons marking the grid corners and hairline dividers between cells.
+
+Stack: React + TypeScript + Tailwind CSS.
+Dependencies: `lucide-react`.
+
+STEP 1. Create `components/ui/logo-cloud-2.tsx` with exactly this content:
+
+```tsx
+"use client";
+
+import { Plus } from "lucide-react";
+
+type Logo = {
+  name: string;
+  src: string;
+};
+
+const logos: Logo[] = [
+  { name: "Vercel", src: "https://cdn.simpleicons.org/vercel" },
+  { name: "Next.js", src: "https://cdn.simpleicons.org/nextdotjs" },
+  { name: "React", src: "https://cdn.simpleicons.org/react" },
+  { name: "Tailwind CSS", src: "https://cdn.simpleicons.org/tailwindcss" },
+  { name: "Figma", src: "https://cdn.simpleicons.org/figma" },
+  { name: "GitHub", src: "https://cdn.simpleicons.org/github" },
+  { name: "Stripe", src: "https://cdn.simpleicons.org/stripe" },
+  { name: "Supabase", src: "https://cdn.simpleicons.org/supabase" },
+];
+
+export function LogoCloud({ className }: { className?: string }) {
+  return (
+    <div className={`relative ${className ?? ""}`}>
+      {/* decorative plus icons at the four corners of the frame */}
+      <Plus
+        aria-hidden
+        className="absolute -top-3 -left-3 size-6 stroke-1 text-muted-foreground/60"
+      />
+      <Plus
+        aria-hidden
+        className="absolute -top-3 -right-3 size-6 stroke-1 text-muted-foreground/60"
+      />
+      <Plus
+        aria-hidden
+        className="absolute -bottom-3 -left-3 size-6 stroke-1 text-muted-foreground/60"
+      />
+      <Plus
+        aria-hidden
+        className="absolute -bottom-3 -right-3 size-6 stroke-1 text-muted-foreground/60"
+      />
+
+      {/* hairline grid: gap-px over a border-colored surface renders the dividers */}
+      <div className="grid grid-cols-2 gap-px border border-border bg-border sm:grid-cols-3 md:grid-cols-4">
+        {logos.map((logo) => (
+          <div
+            key={logo.name}
+            className="group flex items-center justify-center bg-background px-6 py-10 transition-colors duration-300 hover:bg-muted/50"
+          >
+            <img
+              src={logo.src}
+              alt={logo.name}
+              loading="lazy"
+              className="h-7 w-auto opacity-60 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0 dark:invert"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+STEP 2. Create the demo file with exactly this content (this part is the published usage, do not alter it):
+
+```tsx
+import { LogoCloud } from "@/components/ui/logo-cloud-2";
+
+export default function DemoOne() {
+  return (
+    <div className="min-h-screen w-full place-content-center px-4">
+      <section className="relative mx-auto grid max-w-3xl">
+        <h2 className="mb-6 text-center font-medium text-lg text-muted-foreground tracking-tight md:text-2xl">
+          Companies we{" "}
+          <span className="font-semibold text-primary">collaborate</span> with.
+        </h2>
+
+        <LogoCloud />
+      </section>
+    </div>
+  );
+}
+```
+
+LAYOUT RULES TO PRESERVE
+1. Dividers come from `gap-px` on a `bg-border` parent with `bg-background` cells. Do not switch to per cell `border-r border-b`, which double draws at the seams and breaks on the last column.
+2. Grid steps 2 columns on mobile, 3 at `sm`, 4 at `md`. Eight logos fill the 4 column layout as two clean rows.
+3. Plus icons sit outside the frame at `-top-3 / -left-3` and their mirrors, so the icon center lands on the frame corner. The parent must stay `relative`.
+4. Logos default to dimmed grayscale and resolve to full color on hover. Keep `dark:invert` so monochrome marks stay visible on dark backgrounds.
+5. Cell padding is `px-6 py-10` and logo height is fixed at `h-7 w-auto`, which is what keeps wordmarks of different aspect ratios optically equal.
+
+OPTIONAL VARIANT
+If interior plus icons are wanted at each grid intersection rather than just the four corners, add an absolutely positioned overlay layer with `pointer-events-none` and place a `Plus` at each `left-1/4, left-2/4, left-3/4` and `top-1/2` coordinate using `-translate-x-1/2 -translate-y-1/2`. Keep it hidden below `md` where the column count changes.
+
+VERIFICATION
+- Confirm `border`, `background`, `muted`, `muted-foreground`, and `primary` CSS variables exist in `globals.css`. Missing tokens make the dividers invisible.
+- If `cdn.simpleicons.org` is blocked or you prefer local assets, swap `src` for inline SVGs and keep the same `h-7 w-auto` sizing.
+- Render and check three widths: 2 column mobile, 3 column at `sm`, 4 column at `md`. The plus icons must stay pinned to the frame corners at every width.
+- Return complete runnable files with all imports. No placeholders, no TODOs.

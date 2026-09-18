@@ -1,0 +1,148 @@
+Build the "Faqs 1" section from Efferd UI. An elegant FAQ block: a heading column, an accordion of questions with smooth expand and collapse transitions, hairline dividers between items, and a support call to action beneath the list.
+
+Stack: React + TypeScript + Tailwind CSS + shadcn/ui.
+Dependencies: `@radix-ui/react-accordion`, `lucide-react`.
+
+STEP 1. Install the accordion primitive if missing:
+npx shadcn@latest add accordion
+
+STEP 2. Create `components/ui/faqs-1.tsx` with exactly this content:
+
+```tsx
+"use client";
+
+import Link from "next/link";
+import { Minus, Plus } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+type Faq = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
+const faqs: Faq[] = [
+  {
+    id: "item-1",
+    question: "What is included in the license?",
+    answer:
+      "Every purchase includes lifetime access to all current components, future updates, and unlimited use across personal and commercial projects.",
+  },
+  {
+    id: "item-2",
+    question: "Do I need to know Tailwind CSS?",
+    answer:
+      "Basic familiarity helps, but every block ships as copy and paste code with sensible defaults. You can drop a section in and adjust tokens later.",
+  },
+  {
+    id: "item-3",
+    question: "Can I use these components in a client project?",
+    answer:
+      "Yes. You can ship them in unlimited client work. The only restriction is redistributing the components themselves as a competing template or UI kit.",
+  },
+  {
+    id: "item-4",
+    question: "How do updates work?",
+    answer:
+      "New blocks and fixes land continuously. You pull the latest version whenever you need it, and nothing in your existing project breaks.",
+  },
+  {
+    id: "item-5",
+    question: "Is there a refund policy?",
+    answer:
+      "If the library is not a fit, reach out within fourteen days of purchase and you will get a full refund, no questions asked.",
+  },
+];
+
+export function FaqsSection() {
+  return (
+    <section className="py-24 md:py-32">
+      <div className="mx-auto max-w-5xl px-6">
+        <div className="grid gap-12 md:grid-cols-5 md:gap-16">
+          {/* heading column */}
+          <div className="md:col-span-2">
+            <h2 className="text-balance text-3xl font-semibold tracking-tight md:text-4xl">
+              Frequently asked questions
+            </h2>
+            <p className="mt-4 text-balance text-muted-foreground">
+              Everything you need to know about the library and how it works.
+            </p>
+          </div>
+
+          {/* accordion column */}
+          <div className="md:col-span-3">
+            <Accordion
+              type="single"
+              collapsible
+              className="w-full border-t border-border"
+            >
+              {faqs.map((faq) => (
+                <AccordionItem
+                  key={faq.id}
+                  value={faq.id}
+                  className="group border-b border-border"
+                >
+                  <AccordionTrigger className="flex w-full items-center justify-between gap-6 py-5 text-left text-base font-medium hover:no-underline [&>svg]:hidden">
+                    <span className="transition-colors group-hover:text-primary">
+                      {faq.question}
+                    </span>
+                    <span className="relative flex size-5 shrink-0 items-center justify-center text-muted-foreground">
+                      <Plus className="size-4 transition-all duration-300 group-data-[state=open]:rotate-90 group-data-[state=open]:opacity-0" />
+                      <Minus className="absolute size-4 rotate-90 opacity-0 transition-all duration-300 group-data-[state=open]:rotate-0 group-data-[state=open]:opacity-100" />
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-5 pr-10 text-muted-foreground">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+
+            {/* support call to action */}
+            <p className="mt-8 text-sm text-muted-foreground">
+              Still have a question?{" "}
+              <Link
+                href="#"
+                className="font-medium text-primary underline underline-offset-4 transition-opacity hover:opacity-70"
+              >
+                Contact our support team
+              </Link>{" "}
+              and we will get back to you within one business day.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+STEP 3. Create the demo file with exactly this content (this is the published usage, do not alter it):
+
+```tsx
+import { FaqsSection } from "@/components/ui/faqs-1";
+
+export default function DemoOne() {
+  return <FaqsSection />;
+}
+```
+
+RULES THAT MUST NOT CHANGE
+1. Accordion is `type="single"` with `collapsible`, so one answer opens at a time and clicking an open item closes it.
+2. The default shadcn chevron is suppressed with `[&>svg]:hidden`. The plus that morphs into a minus is the intended affordance. Both icons are stacked in one `relative` box and cross fade with rotation, never swapped conditionally in JSX.
+3. Item separation is a single `border-b` per item plus one `border-t` on the accordion root. Do not add per item boxes, cards, or rounded corners.
+4. The section is a 5 column grid at `md`, heading taking 2 and accordion taking 3. It stacks to one column below that.
+5. Keep `hover:no-underline` on the trigger. shadcn underlines triggers by default and it reads as a broken link here.
+6. The support line sits outside the accordion at `mt-8`, small and muted, so it reads as a footnote rather than a second CTA.
+
+VERIFICATION
+- Confirm `border`, `muted-foreground`, and `primary` CSS variables exist in `globals.css`.
+- If the project is not Next.js, replace `next/link` with a plain anchor and drop the import.
+- shadcn ships the open and close height animation on `AccordionContent` via `data-[state]` keyframes in `tailwind.config`. Confirm `accordion-up` and `accordion-down` keyframes are present, otherwise the transition snaps instead of sliding.
+- Test keyboard access: Tab to a trigger, press Enter and Space, and confirm the icon state flips with the panel.
+- Return complete runnable files with all imports. No placeholders, no TODOs.

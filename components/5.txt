@@ -1,0 +1,260 @@
+Build the Aceternity UI "World Map" component exactly. A dotted world map rendered as a base image, with animated curved connection lines drawn over it in SVG and pulsing dots at every endpoint.
+
+Stack: React + TypeScript + Tailwind CSS, Next.js App Router, client component.
+Dependencies: `dotted-map`, `framer-motion` (or `motion`), `next-themes`.
+
+STEP 1. Install:
+npm i dotted-map framer-motion next-themes
+
+STEP 2. Create `components/ui/world-map.tsx` with exactly this content:
+
+```tsx
+"use client";
+
+import { useRef } from "react";
+import { motion } from "framer-motion";
+import DottedMap from "dotted-map";
+import { useTheme } from "next-themes";
+
+interface MapProps {
+  dots?: Array<{
+    start: { lat: number; lng: number; label?: string };
+    end: { lat: number; lng: number; label?: string };
+  }>;
+  lineColor?: string;
+}
+
+export function WorldMap({ dots = [], lineColor = "#0ea5e9" }: MapProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const map = new DottedMap({ height: 100, grid: "diagonal" });
+
+  const { theme } = useTheme();
+
+  const svgMap = map.getSVG({
+    radius: 0.22,
+    color: theme === "dark" ? "#FFFFFF40" : "#00000040",
+    shape: "circle",
+    backgroundColor: theme === "dark" ? "black" : "white",
+  });
+
+  const projectPoint = (lat: number, lng: number) => {
+    const x = (lng + 180) * (800 / 360);
+    const y = (90 - lat) * (400 / 180);
+    return { x, y };
+  };
+
+  const createCurvedPath = (
+    start: { x: number; y: number },
+    end: { x: number; y: number }
+  ) => {
+    const midX = (start.x + end.x) / 2;
+    const midY = Math.min(start.y, end.y) - 50;
+    return `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
+  };
+
+  return (
+    <div className="w-full aspect-[2/1] dark:bg-black bg-white rounded-lg relative font-sans">
+      <img
+        src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
+        className="h-full w-full [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)] pointer-events-none select-none"
+        alt="world map"
+        height="495"
+        width="1056"
+        draggable={false}
+      />
+      <svg
+        ref={svgRef}
+        viewBox="0 0 800 400"
+        className="w-full h-full absolute inset-0 pointer-events-none select-none"
+      >
+        {dots.map((dot, i) => {
+          const startPoint = projectPoint(dot.start.lat, dot.start.lng);
+          const endPoint = projectPoint(dot.end.lat, dot.end.lng);
+          return (
+            <g key={`path-group-${i}`}>
+              <motion.path
+                d={createCurvedPath(startPoint, endPoint)}
+                fill="none"
+                stroke="url(#path-gradient)"
+                strokeWidth="1"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{
+                  duration: 1,
+                  delay: 0.5 * i,
+                  ease: "easeOut",
+                }}
+              />
+            </g>
+          );
+        })}
+
+        <defs>
+          <linearGradient id="path-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="5%" stopColor={lineColor} stopOpacity="1" />
+            <stop offset="95%" stopColor={lineColor} stopOpacity="1" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {dots.map((dot, i) => (
+          <g key={`points-group-${i}`}>
+            <g key={`start-${i}`}>
+              <circle
+                cx={projectPoint(dot.start.lat, dot.start.lng).x}
+                cy={projectPoint(dot.start.lat, dot.start.lng).y}
+                r="2"
+                fill={lineColor}
+              />
+              <circle
+                cx={projectPoint(dot.start.lat, dot.start.lng).x}
+                cy={projectPoint(dot.start.lat, dot.start.lng).y}
+                r="2"
+                fill={lineColor}
+                opacity="0.5"
+              >
+                <animate
+                  attributeName="r"
+                  from="2"
+                  to="8"
+                  dur="1.5s"
+                  begin="0s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  from="0.5"
+                  to="0"
+                  dur="1.5s"
+                  begin="0s"
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </g>
+            <g key={`end-${i}`}>
+              <circle
+                cx={projectPoint(dot.end.lat, dot.end.lng).x}
+                cy={projectPoint(dot.end.lat, dot.end.lng).y}
+                r="2"
+                fill={lineColor}
+              />
+              <circle
+                cx={projectPoint(dot.end.lat, dot.end.lng).x}
+                cy={projectPoint(dot.end.lat, dot.end.lng).y}
+                r="2"
+                fill={lineColor}
+                opacity="0.5"
+              >
+                <animate
+                  attributeName="r"
+                  from="2"
+                  to="8"
+                  dur="1.5s"
+                  begin="0s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  from="0.5"
+                  to="0"
+                  dur="1.5s"
+                  begin="0s"
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </g>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+```
+
+STEP 3. Create the demo file with exactly this content (this is the published usage, do not alter a character):
+
+```tsx
+"use client";
+import { WorldMap } from "@/components/ui/world-map";
+import { motion } from "framer-motion";
+
+export function WorldMapDemo() {
+  return (
+    <div className=" py-40 dark:bg-black bg-white w-full">
+      <div className="max-w-7xl mx-auto text-center">
+        <p className="font-bold text-xl md:text-4xl dark:text-white text-black">
+          Remote{" "}
+          <span className="text-neutral-400">
+            {"Connectivity".split("").map((word, idx) => (
+              <motion.span
+                key={idx}
+                className="inline-block"
+                initial={{ x: -10, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: idx * 0.04 }}
+              >
+                {word}
+              </motion.span>
+            ))}
+          </span>
+        </p>
+        <p className="text-sm md:text-lg text-neutral-500 max-w-2xl mx-auto py-4">
+          Break free from traditional boundaries. Work from anywhere, at the
+          comfort of your own studio apartment. Perfect for Nomads and
+          Travellers.
+        </p>
+      </div>
+      <WorldMap
+        dots={[
+          {
+            start: {
+              lat: 64.2008,
+              lng: -149.4937,
+            },
+            end: {
+              lat: 34.0522,
+              lng: -118.2437,
+            },
+          },
+          {
+            start: { lat: 64.2008, lng: -149.4937 },
+            end: { lat: -15.7975, lng: -47.8919 },
+          },
+          {
+            start: { lat: -15.7975, lng: -47.8919 },
+            end: { lat: 38.7223, lng: -9.1393 },
+          },
+          {
+            start: { lat: 51.5074, lng: -0.1278 },
+            end: { lat: 28.6139, lng: 77.209 },
+          },
+          {
+            start: { lat: 28.6139, lng: 77.209 },
+            end: { lat: 43.1332, lng: 131.9113 },
+          },
+          {
+            start: { lat: 28.6139, lng: 77.209 },
+            end: { lat: -1.2921, lng: 36.8219 },
+          },
+        ]}
+      />
+    </div>
+  );
+}
+```
+
+RULES THAT MUST NOT CHANGE
+1. The SVG `viewBox` is `0 0 800 400` and `projectPoint` maps to that exact space via equirectangular math. Change one and the dots drift off the continents.
+2. The base map is an `img` with a data URI, not an inline SVG. The vertical `mask-image` fade is what blends it into the page background.
+3. Arcs are quadratic Bezier with the control point lifted 50 units above the higher endpoint. Do not swap in an arc or cubic curve.
+4. Line draw uses framer-motion `pathLength` from 0 to 1, staggered `0.5 * i`. The endpoint pulses use native SMIL `<animate>` on `r` and `opacity`, not framer-motion. Keep both mechanisms as written.
+5. The gradient fades to transparent at 0 percent and 100 percent so the lines feather at both ends.
+6. Container is `aspect-[2/1]`, which matches the 2:1 equirectangular projection. Any other ratio distorts the dot positions.
+
+VERIFICATION
+- `dotted-map` runs at render time in the browser. If your build complains, import from `dotted-map/without-countries` and pass a prebuilt map, or memoize the instance with `useMemo` so it does not regenerate on every render.
+- `next-themes` must have a `ThemeProvider` mounted, otherwise `theme` is undefined and the map falls back to light colors. If the project has no next-themes, replace `useTheme()` with a `theme` prop defaulting to `"dark"`.
+- Expect a hydration warning if the theme resolves differently on server and client. Gate the map behind a mounted flag if that shows up.
+- Render and confirm: dots sit on Alaska, Los Angeles, Brasilia, Lisbon, London, Delhi, Vladivostok, and Nairobi.
+- Return complete runnable files with all imports. No placeholders, no TODOs.

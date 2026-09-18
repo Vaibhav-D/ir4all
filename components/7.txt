@@ -1,0 +1,211 @@
+Build the HextaUI "Navbar 1" component. A floating pill shaped navbar, centered and animated on mount, with desktop links inline and a full screen animated overlay menu on mobile.
+
+Stack: React + TypeScript + Tailwind CSS, client component.
+Dependencies: `motion` (the `motion/react` package), `lucide-react`.
+
+STEP 1. Install:
+npm i motion lucide-react
+
+STEP 2. Create `components/ui/navbar-1.tsx` with exactly this content:
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Menu, X } from "lucide-react";
+
+const Navbar1 = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleMenu = () => setIsOpen(!isOpen);
+
+  const navLinks = [
+    { name: "Home", href: "#" },
+    { name: "About", href: "#" },
+    { name: "Services", href: "#" },
+    { name: "Pricing", href: "#" },
+    { name: "Contact", href: "#" },
+  ];
+
+  return (
+    <div className="flex justify-center w-full py-6 px-4">
+      <div className="flex items-center justify-between px-6 py-3 bg-white rounded-full shadow-lg w-full max-w-3xl relative z-10">
+        <div className="flex items-center">
+          <motion.div
+            className="w-8 h-8 mr-6"
+            initial={{ opacity: 0, rotate: -90 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full h-full text-black"
+            >
+              <path
+                d="M12 2L2 7L12 12L22 7L12 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M2 17L12 22L22 17"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M2 12L12 17L22 12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.div>
+        </div>
+
+        {/* desktop navigation */}
+        <nav className="hidden md:flex items-center space-x-8">
+          {navLinks.map((link, index) => (
+            <motion.div
+              key={link.name}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              
+                href={link.href}
+                className="text-sm text-gray-900 hover:text-gray-600 transition-colors font-medium"
+              >
+                {link.name}
+              </a>
+            </motion.div>
+          ))}
+        </nav>
+
+        {/* desktop call to action */}
+        <motion.div
+          className="hidden md:block"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.5 }}
+        >
+          
+            href="#"
+            className="inline-flex items-center justify-center px-5 py-2 text-sm text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
+          >
+            Get Started
+          </a>
+        </motion.div>
+
+        {/* mobile menu button */}
+        <motion.button
+          className="md:hidden flex items-center"
+          onClick={toggleMenu}
+          whileTap={{ scale: 0.9 }}
+          aria-label="Toggle menu"
+        >
+          <Menu className="h-6 w-6 text-gray-900" />
+        </motion.button>
+      </div>
+
+      {/* mobile menu overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="fixed inset-0 bg-white z-50 pt-24 px-6 md:hidden"
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          >
+            <motion.button
+              className="absolute top-6 right-6 p-2"
+              onClick={toggleMenu}
+              whileTap={{ scale: 0.9 }}
+              aria-label="Close menu"
+            >
+              <X className="h-6 w-6 text-gray-900" />
+            </motion.button>
+
+            <div className="flex flex-col space-y-6">
+              {navLinks.map((link, i) => (
+                <motion.div
+                  key={link.name}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ delay: i * 0.1 + 0.2, duration: 0.3 }}
+                >
+                  
+                    href={link.href}
+                    className="text-base text-gray-900 font-medium"
+                    onClick={toggleMenu}
+                  >
+                    {link.name}
+                  </a>
+                </motion.div>
+              ))}
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ delay: 0.6, duration: 0.3 }}
+                className="pt-6"
+              >
+                
+                  href="#"
+                  className="inline-flex items-center justify-center w-full px-5 py-3 text-base text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
+                  onClick={toggleMenu}
+                >
+                  Get Started
+                </a>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export { Navbar1 };
+```
+
+STEP 3. Create the demo file with exactly this content (this is the published usage, do not alter it):
+
+```tsx
+import { Navbar1 } from "@/components/ui/navbar-1"
+
+const Demo = () => {
+    return (
+        <>
+            <Navbar1/>
+        </>
+    )
+}
+
+export {Demo}
+```
+
+RULES THAT MUST NOT CHANGE
+1. The bar is a pill: `rounded-full` with `shadow-lg`, capped at `max-w-3xl`, centered by the outer `flex justify-center` wrapper. It is not sticky or fixed by default.
+2. Import from `motion/react`, not `framer-motion`. The package listed on the component is `motion`.
+3. Desktop links stagger in with `delay: index * 0.1`, the logo rotates in from minus 90 degrees, and the call to action slides in from the right at `delay: 0.5`. Keep all three entrance animations.
+4. The mobile overlay is a full screen panel that slides in from the right with a spring at `damping: 25, stiffness: 300`. It must be wrapped in `AnimatePresence` so the exit animation plays.
+5. Overlay links stagger with `delay: i * 0.1 + 0.2` and every link closes the menu on click.
+6. Breakpoint is `md`. Desktop nav and call to action are `hidden md:flex` and `hidden md:block`, the hamburger is `md:hidden`, and the overlay is `md:hidden`.
+7. Colors are literal Tailwind values, not design tokens: `bg-white`, `text-gray-900`, `bg-black`, `hover:bg-gray-800`. Keep them so the component drops into any project without theme setup.
+
+VERIFICATION
+- Confirm the overlay sits above page content. It uses `z-50` while the bar uses `z-10`.
+- Test at mobile width: open the menu, confirm links stagger in, confirm the X closes it and the panel slides out rather than disappearing.
+- Test at desktop width: confirm the hamburger is gone and the five links plus the button are inline.
+- Add `body` scroll locking only if you want it. The original leaves the page scrollable behind the overlay.
+- Return complete runnable files with all imports. No placeholders, no TODOs.
