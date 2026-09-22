@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { Section, SectionHeading } from "@/components/section";
 import { asset } from "@/lib/asset";
 import { ExpandingStages, type Stage } from "@/components/ui/expanding-stages";
@@ -11,27 +12,20 @@ const STAGES: Stage[] = [
       "A browser-based 3D robot arm, no installation, any device. Learn joint control, Cartesian movement and block programming with an AI Tutor beside you. Four modules, about three hours.",
     chips: ["Blockly programming", "AI Tutor", "4 modules"],
     cta: { label: "Try the arm up top", href: "#" },
-    image: { src: asset("/program/simulator.jpg"), alt: "A student at home driving the robot arm simulator on a laptop" },
+    image: {
+      src: asset("/program/simulator-home.jpg"),
+      alt: "A student at their desk at home, on a remote lab session with a robot arm simulator open on a laptop",
+    },
   },
   {
     number: "02",
     eyebrow: "Phase 2 · In person · ASU MIX Center",
     title: "Build day at ASU",
     description:
-      "Once your modules are done, a two-hour hardware session in Mesa: build and operate a real servo arm, step into the XR lab, then take your final assessment.",
-    chips: ["Servo arm build", "Campus XR visit", "2-hour session"],
+      "Once your modules are done, a two-hour hardware session in Mesa: build and operate a real servo arm, step into the XR lab, then take your final assessment. Pass it and you leave with an official ASU Robotic Arm Fundamentals microcredential, awarded in person and stackable toward future ASU coursework.",
+    chips: ["Servo arm build", "Campus XR visit", "ASU microcredential"],
     cta: { label: "Schedule your build day", href: "#visit" },
     image: { src: asset("/program/build-day.jpg"), alt: "Students working with robot arms at a lab table in the ASU MIX Center" },
-  },
-  {
-    number: "03",
-    eyebrow: "Credential · Issued by ASU",
-    title: "Earn your credential",
-    description:
-      "Your official ASU Robotic Arm Fundamentals microcredential, awarded in person at the MIX Center. It is stackable toward future ASU coursework, and it costs you nothing.",
-    chips: ["ASU microcredential", "Awarded in person", "Stackable"],
-    cta: { label: "What's included", href: "#faq" },
-    image: { src: asset("/program/credential.jpg"), alt: "An instructor handing a student their certificate beside a robot arm" },
   },
 ];
 
@@ -40,10 +34,17 @@ export function Program() {
     <Section id="program">
       <SectionHeading
         eyebrow="The program"
-        title="Two phases. One credential."
-        description="Learn online at your own pace, then build hands-on at ASU and earn your ASU microcredential. Pick a stage to see what it looks like."
+        title="Two phases"
+        description="Learn online at your own pace, then build hands-on at ASU. Finish both and you earn an official ASU microcredential, at no cost. Pick a phase to see what it looks like."
       />
-      <ExpandingStages stages={STAGES} className="mt-14" />
+      {/* The prerequisite: Phase 2 is only open to students who have finished Phase 1. */}
+      <p className="mx-auto mt-6 flex w-fit max-w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 py-2 text-center text-sm text-muted-foreground">
+        <Lock className="size-4 shrink-0 text-brand" />
+        <span>
+          Complete Phase 1 online first. It unlocks your hands-on Phase 2 visit to ASU.
+        </span>
+      </p>
+      <ExpandingStages stages={STAGES} className="mt-12" />
     </Section>
   );
 }

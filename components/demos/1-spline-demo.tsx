@@ -18,6 +18,7 @@ import {
 export const BOT_HOME: number[] = [...BOT_NEUTRAL];
 
 const deg = (d: number) => (d * Math.PI) / 180;
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /** Manual sliders; `index` points into the pose. */
 export const BOT_JOINTS = [
@@ -30,6 +31,8 @@ export const BOT_JOINTS = [
 
 /** Where to look (fraction of the stage height) to face straight ahead. */
 const FRONT_Y = 0.3;
+/** Touch: how long a tap keeps the robot's attention before it wanders again. */
+const TAP_HOLD_MS = 4000;
 
 /**
  * Touch handles: where each dot sits in the robot's box (the camera is fixed,
@@ -71,7 +74,9 @@ const BOT_HANDLES: {
 /**
  * How far to pull the arms in toward the body, by screen width: phones fully,
  * portrait tablets a little, wider screens not at all. Lets the robot be
- * framed larger without the idle swing leaving the display.
+ * framed larger without the idle swing leaving the display. The room the
+ * layout leaves beside the robot adds to this (see armsInForRoom): the
+ * desktop hero centres it on a column at the page's right edge.
  */
 const ARMS_IN = [
   { query: "(max-width: 767px)", amount: 1 },
@@ -81,6 +86,13 @@ function readArmsIn() {
   if (typeof window === "undefined") return 0;
   return ARMS_IN.find((a) => window.matchMedia(a.query).matches)?.amount ?? 0;
 }
+/**
+ * Arms-in amount for the room beside the robot: the distance from its centre
+ * to the nearest visible edge, as a fraction of the box height. The camera
+ * has a fixed vertical field of view, so the idle swing reaches about 0.39x
+ * the box height to each side; below ~0.42 the arms start to come in.
+ */
+const armsInForRoom = (room: number) => clamp((0.42 - room) / 0.12, 0, 1);
 function subscribeArmsIn(onChange: () => void) {
   const qs = ARMS_IN.map((a) => window.matchMedia(a.query));
   qs.forEach((q) => q.addEventListener("change", onChange));
@@ -155,6 +167,13 @@ export function SplineStage({
   /** The cursor has left the window: face front until it comes back. */
   const awayRef = useRef(false);
   const holdUntilRef = useRef(0);
+  /**
+   * Touch: the pose a tap asked for, and until when to hold it. The scene's
+   * own look-at turns the head sideways well but barely tips it, so a tap
+   * low on the screen would hardly register; the rig drives the head and
+   * torso toward the tap itself, then hands back to the look-at.
+   */
+  const tapRef = useRef<{ pose: BotPose; until: number } | null>(null);
 
   useEffect(() => {
     controlRef.current = control;
@@ -227,9 +246,18 @@ export function SplineStage({
     const loop = (now: number) => {
       frame = requestAnimationFrame(loop);
       rigRef.current?.wake();
-      // Touch handles: keep each dot on its node as the head and body move.
       const rig = rigRef.current;
       const canvas = stageRef.current?.querySelector("canvas");
+      // Keep the idle swing on screen, whatever room the layout gives it. The
+      // box is centred on its parent (the hero's stage column) and may be
+      // wider than it, running off the page's right edge, so the room is half
+      // the parent's width, not the canvas's.
+      if (rig && canvas && canvas.clientHeight > 0) {
+        const column = stageRef.current?.parentElement;
+        const room = (column?.clientWidth ?? canvas.clientWidth) / 2 / canvas.clientHeight;
+        rig.setArmsIn(Math.max(armsInRef.current, armsInForRoom(room)));
+      }
+      // Touch handles: keep each dot on its node as the head and body move.
       if (rig && canvas && handlesRef.current) {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
@@ -247,11 +275,15 @@ export function SplineStage({
       }
       const ctl = controlRef.current;
       if (ctl?.input === "touch" && ctl.mode !== "manual" && now >= holdUntilRef.current && now >= wanderNext) {
-        const r = stageRef.current?.getBoundingClientRect();
+        // Glance around at eye level and a little below, measured on the
+        // robot's own box: the stage can be much taller than the box (a phone
+        // screen with the robot in its lower part), and a spot near the top
+        // of the stage would have it staring at the ceiling.
+        const r = canvas?.getBoundingClientRect();
         if (r) {
           smootherRef.current?.feed(
             r.left + r.width * (0.15 + 0.7 * Math.random()),
-            r.top + r.height * (0.2 + 0.45 * Math.random())
+            r.top + r.height * (0.12 + 0.33 * Math.random())
           );
         }
         wanderNext = now + 2000 + Math.random() * 2500;
@@ -301,6 +333,9 @@ export function SplineStage({
         } else if (awayRef.current) {
           // Cursor gone: face straight ahead.
           rig.drive(BOT_NEUTRAL, 1, 5, 2);
+        } else if (tapRef.current && performance.now() < tapRef.current.until) {
+          // A tap on a touch screen: look there for a few seconds.
+          rig.drive(tapRef.current.pose, 1, 6, 4);
         } else {
           // Hand the head and body back to the scene's look-at.
           rig.drive(BOT_NEUTRAL, 0, 5, 2.5);
@@ -311,11 +346,33 @@ export function SplineStage({
     attach();
   };
 
-  // A tap catches the robot's eye for a few seconds.
+  // A tap catches the robot's eye for a few seconds. Taps on the hero's own
+  // controls (the switcher and toolbar sit over the stage) are not for it.
   const handlePointerDown = (e: React.PointerEvent) => {
     if (controlRef.current?.input !== "touch") return;
-    smootherRef.current?.feed(e.clientX, e.clientY);
-    holdUntilRef.current = performance.now() + 3000;
+    if ((e.target as Element | null)?.closest?.("[data-no-track], button, a, input")) return;
+    // A tap well above the head (the stage runs up under the navbar) is read
+    // as "just above the head", not a stare at the ceiling.
+    const canvas = stageRef.current?.querySelector("canvas");
+    const r = canvas?.getBoundingClientRect();
+    const y = r ? Math.max(e.clientY, r.top + r.height * 0.08) : e.clientY;
+    smootherRef.current?.feed(e.clientX, y);
+    const now = performance.now();
+    holdUntilRef.current = now + TAP_HOLD_MS;
+    // Turn and tip the head (and a little of the torso) toward the tap, from
+    // where the head is on screen right now.
+    const rig = rigRef.current;
+    if (rig && r && r.width > 0 && r.height > 0) {
+      const head = rig.project(HEAD, [0, 24, 26]);
+      const hx = head ? r.left + ((head.x + 1) / 2) * r.width : r.left + r.width / 2;
+      const hy = head ? r.top + ((1 - head.y) / 2) * r.height : r.top + r.height * 0.3;
+      const turn = clamp((e.clientX - hx) / r.width / 0.5, -1, 1) * deg(42);
+      const nod = clamp((y - hy) / r.height / 0.55, -1, 1) * deg(28);
+      tapRef.current = {
+        pose: [turn, nod, turn * 0.15, turn * 0.35, turn * 0.12],
+        until: now + TAP_HOLD_MS,
+      };
+    }
   };
 
   return (
@@ -324,15 +381,17 @@ export function SplineStage({
       onPointerDown={handlePointerDown}
       className={cn("[&_canvas]:pointer-events-none", className)}
     >
-      {/* Below the desktop breakpoint the box is sized from the viewport width
-          and anchored low, so the robot rises from the bottom, the arms stay
-          inside the display and the wordmark stays visible. Phones sit the box
-          on the bottom controls: the scene switches to a closer camera once the
-          box grows past ~80vw there, which would push the head off the bottom. */}
+      {/* Below the desktop breakpoint the stage is a screen of its own, with
+          the floating navbar, the switcher and the hint stacked along its top
+          (about 11.5rem). The box sits on the bottom edge and is capped to the
+          space under that slot, which on most phones and tablets is what sizes
+          it; the viewport-width heights only matter on short, wide screens.
+          The hands may just touch the side edges. On desktop the box is the
+          whole column. */}
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 h-[140vw] max-h-full md:h-[92vw] lg:h-auto",
-          // Landscape tablets share the desktop breakpoint; start the box under
+          "absolute inset-x-0 bottom-0 h-[170vw] max-h-[calc(100%-11.5rem)] md:h-[120vw] lg:h-auto lg:max-h-none",
+          // Landscape tablets share the desktop breakpoint; keep the box under
           // the navbar there so the head stays clear of it.
           control?.input === "touch" ? "lg:top-[5.5rem]" : "lg:top-0"
         )}

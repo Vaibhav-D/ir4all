@@ -5,7 +5,7 @@ import { LogoFrame } from "@/components/ui/logo-cloud-2";
 import { cn } from "@/lib/utils";
 import { asset } from "@/lib/asset";
 import { Reveal } from "@/components/ui/reveal";
-import { LinkedInGlyph, TeamCard, type TeamLink } from "@/components/ui/team-card";
+import { GitHubGlyph, LinkedInGlyph, TeamCard, type TeamLink } from "@/components/ui/team-card";
 
 type Member = {
   slug: string;
@@ -17,6 +17,7 @@ type Member = {
   photoStyle?: "cutout" | "full";
   links: TeamLink[];
 };
+
 
 const TEAM: Member[] = [
   {
@@ -65,6 +66,31 @@ const TEAM: Member[] = [
       { label: "Email", href: "mailto:rgarewal@asu.edu", icon: <Mail className="size-4" /> },
     ],
   },
+  {
+    slug: "doifode",
+    initials: "VD",
+    tag: "Web & XR",
+    name: "Vaibhav Doifode",
+    role: "Research Assistant",
+    photo: asset("/team/vaibhav-doifode-cutout.png"),
+    links: [
+      { label: "LinkedIn", href: "https://www.linkedin.com/in/vaibhav-doifode/", icon: <LinkedInGlyph /> },
+      { label: "Website", href: "https://www.vaibhavdoifode.com/", icon: <Globe className="size-4" /> },
+      { label: "GitHub", href: "https://github.com/Vaibhav-D", icon: <GitHubGlyph /> },
+    ],
+  },
+  // TODO: replace Mitrang's "#" links with real ones and add a portrait.
+  {
+    slug: "gupta",
+    initials: "MG",
+    tag: "Robotics",
+    name: "Mitrang Gupta",
+    role: "Research Assistant",
+    links: [
+      { label: "LinkedIn", href: "#", icon: <LinkedInGlyph /> },
+      { label: "Email", href: "#", icon: <Mail className="size-4" /> },
+    ],
+  },
 ];
 
 const PARTNERS = [
@@ -104,9 +130,14 @@ export function About() {
       <p className="mt-14 text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
         Research team
       </p>
-      <div className="mx-auto mt-6 grid max-w-4xl gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Three to a row on desktop, two on tablets; a short last row is centred. */}
+      <div className="mx-auto mt-6 flex max-w-4xl flex-wrap justify-center gap-8">
         {TEAM.map((member, i) => (
-          <Reveal key={member.slug} delay={i * 0.08}>
+          <Reveal
+            key={member.slug}
+            delay={(i % 3) * 0.08}
+            className="w-full sm:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.34rem)]"
+          >
             <TeamCard {...member} />
           </Reveal>
         ))}

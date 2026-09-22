@@ -52,7 +52,7 @@ export function ExpandingStages({ stages, className }: { stages: Stage[]; classN
   return (
     <div ref={ref} className={className}>
       <div
-        className="flex h-[44rem] flex-col gap-3 md:h-[34rem] md:flex-row"
+        className="flex h-[38rem] flex-col gap-3 md:h-[34rem] md:flex-row"
         onPointerLeave={() => setEngaged(false)}
       >
         {stages.map((stage, i) => {

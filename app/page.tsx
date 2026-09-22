@@ -5,7 +5,6 @@ import { About } from "@/components/sections/about";
 import { FinalCta } from "@/components/sections/cta";
 import { Events } from "@/components/sections/events";
 import { Faq } from "@/components/sections/faq";
-import { Intro } from "@/components/sections/intro";
 import { Program } from "@/components/sections/program";
 import { Ticker } from "@/components/sections/ticker";
 import { Visit } from "@/components/sections/visit";
@@ -20,31 +19,28 @@ export default function Page() {
       </header>
 
       <main className="flex-1">
-        {/* 1 — Hero, full bleed. Everything the visitor needs to know follows it. */}
+        {/* 1 — Hero: what IR4ALL is, who backs it, and the robots to play with. */}
         <Hero />
 
         {/* 2 — The program in eight beats */}
         <Ticker />
 
-        {/* 3 — Who it is for, what they get, what it costs */}
-        <Intro />
-
-        {/* 4 — Two phases, one credential */}
+        {/* 3 — Two phases, one credential */}
         <Program />
 
-        {/* 5 — Come to the MIX Center (the goal of the page) */}
+        {/* 4 — Come to the MIX Center (the goal of the page) */}
         <Visit />
 
-        {/* 6 — Arizona robotics events */}
+        {/* 5 — Arizona robotics events */}
         <Events />
 
-        {/* 7 — Team, funders and partners */}
+        {/* 6 — Team, funders and partners */}
         <About />
 
-        {/* 8 — Questions */}
+        {/* 7 — Questions */}
         <Faq />
 
-        {/* 9 — Last call */}
+        {/* 8 — Last call */}
         <FinalCta />
       </main>
 

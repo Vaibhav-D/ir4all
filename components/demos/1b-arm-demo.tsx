@@ -310,8 +310,9 @@ function buildGripper() {
   return { group, setGrip, dispose };
 }
 
-/** Pixel margins the arm keeps from the canvas edges: the top clears the
- *  floating nav capsule, the bottom the hero's variant switcher. */
+/** Pixel margins the arm keeps from the canvas edges when the hero passes
+ *  none (`pad`): the top clears the floating nav capsule, the bottom the
+ *  hero's variant switcher. */
 const FRAME_PAD = { top: 100, bottom: 92 };
 
 export function RobotArmHero({
@@ -322,6 +323,7 @@ export function RobotArmHero({
   compact = false,
   handles = false,
   onJointDrag,
+  pad,
 }: {
   className?: string;
   control: ArmControl;
@@ -330,6 +332,12 @@ export function RobotArmHero({
   onArmClick?: () => void;
   /** Phones: trim the actions' sweeps further so the arm can frame larger. */
   compact?: boolean;
+  /**
+   * Pixel margins to keep clear at the top and bottom of the canvas, for
+   * whatever the hero lays over it (navbar, switcher, toolbar). The camera
+   * refits when they change. Defaults to FRAME_PAD / TOUCH_PAD.
+   */
+  pad?: { top: number; bottom: number };
   /** Show a draggable dot on every joint (touch screens). */
   handles?: boolean;
   /** A dot was dragged: the joint's new target angle. */
@@ -341,6 +349,9 @@ export function RobotArmHero({
   const clickRef = useRef(onArmClick);
   const handlesRef = useRef(handles);
   const compactRef = useRef(compact);
+  const padRef = useRef(pad);
+  // Set by the scene effect: reframes the arm for the current pads.
+  const refitRef = useRef<(() => void) | null>(null);
   const dragRef = useRef(onJointDrag);
   const handleRefs = useRef<(HTMLDivElement | null)[]>([]);
   // Set by the scene effect; turns a dot drag into a joint angle.
@@ -365,6 +376,10 @@ export function RobotArmHero({
   useEffect(() => {
     compactRef.current = compact;
   }, [compact]);
+  useEffect(() => {
+    padRef.current = pad;
+    refitRef.current?.();
+  }, [pad]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -418,6 +433,7 @@ export function RobotArmHero({
 
     // Filled in once the meshes load; refits the camera on every resize.
     let fit: (() => void) | null = null;
+    refitRef.current = () => fit?.();
     // Where fit() put the camera, so the entrance can dolly in toward it.
     const fitPos = new THREE.Vector3();
     const fitLook = new THREE.Vector3();
@@ -599,7 +615,7 @@ export function RobotArmHero({
               key === "full" ? pointsFull : key === "compact" ? pointsCompact : pointsNarrow
             );
           }
-          const pad = isTouch() ? TOUCH_PAD : FRAME_PAD;
+          const pad = padRef.current ?? (isTouch() ? TOUCH_PAD : FRAME_PAD);
           const tanFull = Math.tan((camera.fov * Math.PI) / 360);
           const top = 1 - (2 * pad.top) / h;
           const bottom = 1 - (2 * pad.bottom) / h;
@@ -1022,6 +1038,7 @@ export function RobotArmHero({
     return () => {
       disposed = true;
       jointDragRef.current = null;
+      refitRef.current = null;
       cancelAnimationFrame(frame);
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
