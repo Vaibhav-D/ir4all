@@ -21,6 +21,7 @@ import { useInputMode } from "@/components/demos/use-input-mode";
 import { useMediaQuery } from "@/components/demos/use-media-query";
 import { Reveal } from "@/components/ui/reveal";
 import { asset } from "@/lib/asset";
+import { PORTAL_LOGIN_URL } from "@/lib/portal";
 import { cn } from "@/lib/utils";
 
 /**
@@ -235,14 +236,14 @@ export function Hero() {
             <Reveal delay={0.24}>
               <div className="mt-7 flex flex-wrap gap-3">
                 <a
-                  href="#program"
+                  href={PORTAL_LOGIN_URL}
                   className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:px-6 sm:py-3"
                 >
                   Start building
                   <ArrowRight className="size-4" />
                 </a>
                 <a
-                  href="#visit"
+                  href={PORTAL_LOGIN_URL}
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted sm:px-6 sm:py-3"
                 >
                   <MapPin className="size-4 text-brand" />

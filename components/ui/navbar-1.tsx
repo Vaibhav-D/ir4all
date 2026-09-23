@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { PORTAL_LOGIN_URL } from "@/lib/portal";
 
 /** Hex-cut badge with a circuit-trace "4": the IR4ALL mark. */
 export function Ir4allMark({ className }: { className?: string }) {
@@ -91,7 +92,7 @@ const Navbar1 = () => {
           transition={{ duration: 0.3, delay: 0.5 }}
         >
           <a
-            href="#visit"
+            href={PORTAL_LOGIN_URL}
             className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             Book a build day
@@ -159,7 +160,7 @@ const Navbar1 = () => {
                 className="pt-6"
               >
                 <a
-                  href="#visit"
+                  href={PORTAL_LOGIN_URL}
                   className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition-opacity hover:opacity-90"
                   onClick={toggleMenu}
                 >

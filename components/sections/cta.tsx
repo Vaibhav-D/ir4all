@@ -1,7 +1,8 @@
 import { ArrowRight } from "lucide-react";
 import { Section } from "@/components/section";
+import { PORTAL_LOGIN_URL } from "@/lib/portal";
 
-const SIGNUP_HREF = "mailto:ir4all@asu.edu?subject=Sign%20me%20up%20for%20IR4All";
+const SIGNUP_HREF = PORTAL_LOGIN_URL;
 
 /** Last call before the footer. */
 export function FinalCta() {
@@ -33,7 +34,7 @@ export function FinalCta() {
               <ArrowRight className="size-4" />
             </a>
             <a
-              href="#events"
+              href={PORTAL_LOGIN_URL}
               className="inline-flex items-center rounded-full border border-background/25 px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-background/10"
             >
               See upcoming events

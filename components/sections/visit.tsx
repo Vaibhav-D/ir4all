@@ -9,9 +9,10 @@ import {
 } from "lucide-react";
 import { Section, SectionHeading } from "@/components/section";
 import { EarthZoom, type Place } from "@/components/ui/earth-zoom";
+import { PORTAL_LOGIN_URL } from "@/lib/portal";
 
-export const SCHEDULE_HREF =
-  "mailto:ir4all@asu.edu?subject=Build%20day%20at%20the%20ASU%20MIX%20Center";
+/** Every button on the page leads to the portal sign-in; build days are booked from there. */
+export const SCHEDULE_HREF = PORTAL_LOGIN_URL;
 
 const MIX_CENTER: Place = {
   name: "ASU MIX Center",
@@ -69,7 +70,7 @@ export function Visit() {
             <ArrowRight className="size-4" />
           </a>
           <a
-            href="#faq"
+            href={PORTAL_LOGIN_URL}
             className="inline-flex items-center rounded-full border border-border bg-card px-6 py-3 text-sm font-medium transition-colors hover:bg-muted"
           >
             Ask a question

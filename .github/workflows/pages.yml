@@ -1,13 +1,12 @@
-# Builds two versions of the site as static exports and publishes both to
-# GitHub Pages on every push:
-#   https://<owner>.github.io/<repo>/      the original site, frozen on the v1 branch
-#   https://<owner>.github.io/<repo>/v2/   the current site, from main
-# Pages serves one deployment per repo, so both are built into one artifact.
+# Builds the site as a static export and publishes it to GitHub Pages on
+# every push to main:
+#   https://<owner>.github.io/<repo>/
+# The original site is kept on the v1 branch but is no longer published.
 name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, v1]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -23,51 +22,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      # The original site (v1 branch) at the root. It is built first, in its
-      # own folder, and that folder is removed before the current site is
-      # built so the two never share a TypeScript project.
-      - uses: actions/checkout@v4
-        with:
-          ref: v1
-          path: v1
-      - name: Build the original site (v1)
-        working-directory: v1
+          cache: npm
+      - name: Build
         run: npm ci && npx next build
         env:
           GITHUB_PAGES: "true"
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
-      - name: Keep the v1 output, drop its source
-        run: |
-          mkdir -p site
-          cp -R v1/out/. site/
-          rm -rf v1
-
-      # The current site (main) under /v2.
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          path: current
-      - name: Build the current site (main)
-        working-directory: current
-        run: npm ci && npx next build
-        env:
-          GITHUB_PAGES: "true"
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/v2
-      - name: Place it under /v2
-        run: |
-          mkdir -p site/v2
-          cp -R current/out/. site/v2/
-
+          # Where every button on the page sends people: the LMS sign-in.
+          NEXT_PUBLIC_PORTAL_URL: https://ir4all-lms.vercel.app
       - uses: actions/configure-pages@v5
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: out
 
   deploy:
     needs: build

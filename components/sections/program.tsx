@@ -1,6 +1,7 @@
 import { Lock } from "lucide-react";
 import { Section, SectionHeading } from "@/components/section";
 import { asset } from "@/lib/asset";
+import { PORTAL_LOGIN_URL } from "@/lib/portal";
 import { ExpandingStages, type Stage } from "@/components/ui/expanding-stages";
 
 const STAGES: Stage[] = [
@@ -11,7 +12,7 @@ const STAGES: Stage[] = [
     description:
       "A browser-based 3D robot arm, no installation, any device. Learn joint control, Cartesian movement and block programming with an AI Tutor beside you. Four modules, about three hours.",
     chips: ["Blockly programming", "AI Tutor", "4 modules"],
-    cta: { label: "Try the arm up top", href: "#" },
+    cta: { label: "Try the arm up top", href: PORTAL_LOGIN_URL },
     image: {
       src: asset("/program/simulator-home.jpg"),
       alt: "A student at their desk at home, on a remote lab session with a robot arm simulator open on a laptop",
@@ -24,7 +25,7 @@ const STAGES: Stage[] = [
     description:
       "Once your modules are done, a two-hour hardware session in Mesa: build and operate a real servo arm, step into the XR lab, then take your final assessment. Pass it and you leave with an official ASU Robotic Arm Fundamentals microcredential, awarded in person and stackable toward future ASU coursework.",
     chips: ["Servo arm build", "Campus XR visit", "ASU microcredential"],
-    cta: { label: "Schedule your build day", href: "#visit" },
+    cta: { label: "Schedule your build day", href: PORTAL_LOGIN_URL },
     image: { src: asset("/program/build-day.jpg"), alt: "Students working with robot arms at a lab table in the ASU MIX Center" },
   },
 ];
